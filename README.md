@@ -28,10 +28,10 @@ flowchart LR
 
 | Komponen | Pilihan | Alasan singkat |
 |---|---|---|
-| Sumber | PostgreSQL 16 | Ringan di Docker, trigger untuk mencatat hard delete |
-| Warehouse | ClickHouse 24.8 | Warehouse kolumnar sungguhan yang jalan penuh di Docker. Tidak butuh akun cloud, sehingga `docker compose up` cukup untuk menjalankan semuanya. BigQuery adalah target alami di produksi |
-| Orkestrasi | Mage | Block (loader, transformer, exporter) jelas dan mudah diperagakan lewat UI |
-| Penulisan | Python (`clickhouse-connect`, pandas) | Kontrol penuh atas versi baris dan penulisan per partisi |
+| Database | PostgreSQL 16 | Familiar digunakan, punya fungsi trigger untuk mencatat hard delete |
+| Warehouse | ClickHouse 24.8 | sudaht berformat seperti Warehouse kolumnar sungguhan dan dapat dijalankan di Docker. Tidak butuh akun cloud seperti GCP atau AWS, cocok untuk pengembangan |
+| Orkestrasi | Mage | mudah dioperasikan via UI |
+
 
 ## Cara menjalankan
 
@@ -39,12 +39,11 @@ Prasyarat: Docker Desktop (Compose v2). Tidak perlu akun cloud.
 
 ```bash
 git clone <repo-ini> && cd kumparan-etl-mage
-cp .env.example .env          # sesuaikan kredensial/port bila perlu
+cp .env.example .env          # cek kredensial lebih dahulu jika diperlukan
 docker compose up -d --build
-docker compose ps             # tunggu postgres dan clickhouse "healthy"
 ```
 
-Saat pertama kali menyala:
+Perintah *docker compose up -d --build* Saat pertama kali menyala:
 - Postgres membuat tabel `articles` dan `articles_hard_deleted` (beserta trigger), **tanpa data**.
 - ClickHouse membuat database `dwh` dengan semua tabel dan view, **tanpa data**.
 - Mage aktif di http://localhost:6789 (project `kumparan_etl`).
