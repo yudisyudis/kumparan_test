@@ -1,8 +1,5 @@
-# Block: handover_watermark | Type: Data exporter (Python, Generic)
-# Tugas: menyerahkan tongkat ke pipeline incremental. Watermark articles_incremental disetel ke t0
-# (waktu SEBELUM backfill mulai, bukan waktu selesai), supaya perubahan selama backfill
-# tidak hilang. Baris yang terbaca dua kali aman karena pipeline idempoten.
-# Watermark tidak dimundurkan kalau incremental sudah lebih maju.
+# menentukan watermark untuk T0 proses data_streaming
+
 from os import path
 
 from kumparan_etl.utils.warehouse import get_clickhouse_client

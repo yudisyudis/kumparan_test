@@ -9,8 +9,7 @@ from mage_ai.settings.repo import get_repo_path
 if 'data_loader' not in globals():
     from mage_ai.data_preparation.decorators import data_loader
 
-# Mundur sedikit karena nomor event dari sequence bisa commit tidak berurutan.
-# Aman karena langkah berikutnya idempoten (baris yang sudah ditandai dilewati).
+
 EVENT_OVERLAP = 1000
 
 

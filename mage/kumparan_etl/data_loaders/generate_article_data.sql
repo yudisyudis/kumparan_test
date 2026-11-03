@@ -7,6 +7,7 @@ WITH base AS MATERIALIZED (
         n,
         timestamptz '2016-01-01 00:00:00+00'
           + random() * (now() - timestamptz '2016-01-01 00:00:00+00') AS created_at
+        --   tentukan jumlah data dummy
     FROM generate_series(1, 1000) AS n
 ),
 dummy AS (

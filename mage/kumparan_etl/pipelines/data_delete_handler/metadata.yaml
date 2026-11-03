@@ -26,13 +26,13 @@ blocks:
   language: python
   name: extract_data_delete
   retry_config: null
-  status: executed
+  status: updated
   timeout: null
   type: data_loader
   upstream_blocks:
   - get_delete_watermark
   uuid: extract_data_delete
-- all_upstream_blocks_executed: true
+- all_upstream_blocks_executed: false
   color: null
   configuration: {}
   downstream_blocks: []
@@ -42,7 +42,7 @@ blocks:
   language: python
   name: update_data_delete
   retry_config: null
-  status: executed
+  status: updated
   timeout: null
   type: data_exporter
   upstream_blocks:

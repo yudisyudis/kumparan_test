@@ -6,22 +6,16 @@ CREATE TABLE articles (
     id            BIGSERIAL    PRIMARY KEY,
     title         TEXT         NOT NULL,
     content       TEXT,
-    published_at  TIMESTAMPTZ,                          -- NULL = belum terbit (draft)
+    published_at  TIMESTAMPTZ,                          
     author_id     BIGINT       NOT NULL,
     created_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),  -- diisi saat dibuat
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT now(),  -- diisi saat dibuat DAN saat diubah
     deleted_at    TIMESTAMPTZ                           -- diisi saat soft delete
 );
 
--- Index untuk incremental load: WHERE (updated_at, id) > (:wm_ts, :wm_id) ORDER BY updated_at, id
--- Tanpa index ini, tiap run per jam = full table scan.
 CREATE INDEX idx_articles_updated_at_id ON articles (updated_at, id);
 CREATE INDEX idx_articles_author_id     ON articles (author_id);
 
--- ---------------------------------------------------------------------
--- Jaga kontrak "updated_at berubah setiap UPDATE", termasuk soft delete.
--- Seluruh strategi incremental bergantung pada kontrak ini.
--- ---------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION trg_set_updated_at() RETURNS trigger AS $$
 BEGIN
     NEW.updated_at := now();
@@ -34,10 +28,7 @@ BEFORE UPDATE ON articles
 FOR EACH ROW EXECUTE FUNCTION trg_set_updated_at();
 
 -- ---------------------------------------------------------------------
--- Tombstone untuk HARD DELETE (bonus 2, opsi trigger + tabel audit).
--- Setiap DELETE fisik pada articles dicatat di sini, sehingga pipeline
--- bisa mengetahui id mana yang hilang tanpa membandingkan seluruh tabel.
--- (Bisa diganti/ditambah CDC di production, lihat dokumentasi.)
+-- membaca seluruh aktivitas hard delete dari hasil trigger
 -- ---------------------------------------------------------------------
 CREATE TABLE articles_hard_deleted (
     event_id    BIGSERIAL    PRIMARY KEY,

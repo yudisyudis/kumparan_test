@@ -43,8 +43,6 @@ def apply_hard_deletes(*upstream_outputs, **kwargs):
         insert_articles(client, prepare_articles_df(existing), version, is_hard_deleted=1)
         written = len(existing)
 
-    # Artikel yang terhapus sebelum pernah tersinkron (atau sudah ditandai) tidak punya baris
-    # untuk ditandai, tetapi event-nya tetap dianggap selesai.
     last = tombstones.iloc[-1]
     client.insert(
         'etl_state',
