@@ -1,0 +1,14 @@
+triggers:
+- description: null
+  envs: []
+  last_enabled_at: 2026-11-03 00:38:43.202453
+  name: insert simulation
+  pipeline_uuid: data_insert_simulation
+  schedule_interval: '*/10 * * * *'
+  schedule_type: time
+  settings: null
+  sla: null
+  start_time: 2026-11-03 00:36:00
+  status: inactive
+  token: fb965cd2d54442d8ab3c15b2aeb7cdb7
+  variables: {}

@@ -1,0 +1,14 @@
+triggers:
+- description: null
+  envs: []
+  last_enabled_at: 2026-11-03 00:24:15.849105
+  name: update delete hourly
+  pipeline_uuid: data_delete_handler
+  schedule_interval: '@hourly'
+  schedule_type: time
+  settings: null
+  sla: null
+  start_time: 2026-11-03 00:23:00
+  status: inactive
+  token: 4213cdc9f12a44b6a5fb556235b2274c
+  variables: {}

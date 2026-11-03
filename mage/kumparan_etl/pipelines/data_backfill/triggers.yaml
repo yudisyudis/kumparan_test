@@ -1,0 +1,14 @@
+triggers:
+- description: null
+  envs: []
+  last_enabled_at: 2026-11-02 23:51:36.421452
+  name: once backfill
+  pipeline_uuid: data_backfill
+  schedule_interval: '@once'
+  schedule_type: time
+  settings: null
+  sla: null
+  start_time: 2026-11-01 23:51:00
+  status: inactive
+  token: 79114b1786be4614b41a654c90828035
+  variables: {}

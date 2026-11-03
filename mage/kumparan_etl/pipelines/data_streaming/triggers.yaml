@@ -1,0 +1,14 @@
+triggers:
+- description: null
+  envs: []
+  last_enabled_at: 2026-11-03 00:16:12.422915
+  name: hourly scheduler update
+  pipeline_uuid: data_streaming
+  schedule_interval: '@hourly'
+  schedule_type: time
+  settings: null
+  sla: null
+  start_time: 2026-11-03 00:15:00
+  status: inactive
+  token: c0a52d4fc1264135afa748b7893dda87
+  variables: {}

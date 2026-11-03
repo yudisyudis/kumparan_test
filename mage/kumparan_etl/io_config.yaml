@@ -1,0 +1,19 @@
+version: 0.1.1
+default:
+  # ---- PostgreSQL (source) ----
+  POSTGRES_CONNECT_TIMEOUT: 10
+  POSTGRES_DBNAME: "{{ env_var('POSTGRES_DB') }}"
+  POSTGRES_SCHEMA: public
+  POSTGRES_USER: "{{ env_var('POSTGRES_USER') }}"
+  POSTGRES_PASSWORD: "{{ env_var('POSTGRES_PASSWORD') }}"
+  POSTGRES_HOST: "{{ env_var('POSTGRES_HOST') }}"
+  POSTGRES_PORT: 5432
+
+  # ---- ClickHouse (warehouse), lewat HTTP port 8123 ----
+  CLICKHOUSE_DATABASE: "{{ env_var('CLICKHOUSE_DB') }}"
+  CLICKHOUSE_HOST: "{{ env_var('CLICKHOUSE_HOST') }}"
+  CLICKHOUSE_INTERFACE: http
+  CLICKHOUSE_PASSWORD: "{{ env_var('CLICKHOUSE_PASSWORD') }}"
+  CLICKHOUSE_PORT: 8123
+  CLICKHOUSE_USERNAME: "{{ env_var('CLICKHOUSE_USER') }}"
+  CLICKHOUSE_VERIFY_SSL: false

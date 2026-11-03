@@ -1,0 +1,45 @@
+# mengirim data histor dari database ke datawarehouse
+
+from mage_ai.io.config import ConfigFileLoader
+from mage_ai.io.postgres import Postgres
+from mage_ai.settings.repo import get_repo_path
+from kumparan_etl.utils.warehouse import get_clickhouse_client
+
+if 'data_exporter' not in globals():
+    from mage_ai.data_preparation.decorators import data_exporter
+
+BACKFILL = 'articles_backfill'
+INCREMENTAL = 'articles_incremental'
+STATE_SQL = 'SELECT last_updated_at FROM etl_state FINAL WHERE pipeline = {p:String}'
+
+
+@data_exporter
+def handover_watermark(*args, **kwargs):
+    client = get_clickhouse_client()
+
+    backfill_state = client.query(STATE_SQL, parameters={'p': BACKFILL})
+    if backfill_state.row_count == 0:
+        print('Backfill belum pernah dimulai, tidak ada yang diserahkan')
+        return
+    t0 = backfill_state.first_row[0]
+
+    incremental_state = client.query(STATE_SQL, parameters={'p': INCREMENTAL})
+    if incremental_state.row_count == 0 or incremental_state.first_row[0] < t0:
+        client.insert('etl_state', [[INCREMENTAL, t0, 0, 0]],
+                      column_names=['pipeline', 'last_updated_at', 'last_id', 'rows_synced'])
+        print(f'Watermark {INCREMENTAL} disetel ke t0 = {t0.isoformat()}')
+    else:
+        print(f'Watermark {INCREMENTAL} sudah lebih maju dari t0, dibiarkan')
+
+    # Validasi sederhana: jumlah baris dengan created_at <= t0 di kedua sisi
+    config_path = path.join(get_repo_path(), 'io_config.yaml')
+    with Postgres.with_config(ConfigFileLoader(config_path, 'default')) as loader:
+        pg_count = int(loader.load(
+            f"SELECT count(*) AS n FROM public.articles WHERE created_at <= '{t0.isoformat()}'::timestamptz"
+        )['n'].iloc[0])
+    ch_count = client.query(
+        'SELECT count() FROM articles FINAL WHERE created_at <= {t0:DateTime64(3)} AND _is_hard_deleted = 0',
+        parameters={'t0': t0},
+    ).first_row[0]
+    status = 'COCOK' if pg_count == ch_count else 'SELISIH, periksa'
+    print(f'Validasi: Postgres={pg_count}, ClickHouse={ch_count} -> {status}')

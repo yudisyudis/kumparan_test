@@ -1,0 +1,1 @@
+{"id": "int64", "title": "str", "content": "str", "published_at": "datetime64[ns, UTC]", "author_id": "int64", "created_at": "datetime64[ns, UTC]", "updated_at": "datetime64[ns, UTC]", "deleted_at": "datetime64[ns, UTC]"}

@@ -1,0 +1,5 @@
+clickhouse-connect
+psycopg2-binary
+pandas
+pyarrow
+pytest

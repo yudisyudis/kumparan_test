@@ -1,0 +1,1 @@
+{"event_id": "int64", "article_id": "int64", "deleted_at": "datetime64[ns, UTC]"}

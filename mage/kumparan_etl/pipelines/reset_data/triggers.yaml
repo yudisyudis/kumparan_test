@@ -1,0 +1,14 @@
+triggers:
+- description: null
+  envs: []
+  last_enabled_at: null
+  name: once reset data
+  pipeline_uuid: reset_data
+  schedule_interval: '@once'
+  schedule_type: time
+  settings: null
+  sla: null
+  start_time: 2026-11-03 02:54:00
+  status: inactive
+  token: 288adba08f0849bfa29e94c0c4de8c7c
+  variables: {}

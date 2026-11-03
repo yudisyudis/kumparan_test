@@ -1,0 +1,18 @@
+# Block: reset_clickhouse 
+from kumparan_etl.utils.warehouse import get_clickhouse_client
+
+if 'data_exporter' not in globals():
+    from mage_ai.data_preparation.decorators import data_exporter
+
+TABLES = ['articles', 'etl_state', 'etl_backfill_checkpoint']
+
+
+@data_exporter
+def reset_clickhouse(*args, **kwargs):
+    client = get_clickhouse_client()
+    for table in TABLES:
+        client.command(f'TRUNCATE TABLE {table}')
+
+    for table in TABLES:
+        remaining = client.query(f'SELECT count() FROM {table}').first_row[0]
+        print(f'ClickHouse dwh.{table}: {remaining} baris')

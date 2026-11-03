@@ -1,0 +1,14 @@
+triggers:
+- description: null
+  envs: []
+  last_enabled_at: 2026-11-02 23:38:39.884031
+  name: once data generator
+  pipeline_uuid: data_generator
+  schedule_interval: '@once'
+  schedule_type: time
+  settings: null
+  sla: null
+  start_time: 2026-11-01 23:38:00
+  status: inactive
+  token: d56bd78e1cea49fe8a6c086ec24b696d
+  variables: {}

@@ -1,0 +1,29 @@
+# Mengambil suatu watermark yang p
+from datetime import datetime, timezone
+
+from kumparan_etl.utils.warehouse import PIPELINE_NAME, get_clickhouse_client
+
+if 'data_loader' not in globals():
+    from mage_ai.data_preparation.decorators import data_loader
+
+EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
+
+
+@data_loader
+def get_watermark(*args, **kwargs):
+    client = get_clickhouse_client()
+    result = client.query(
+        'SELECT last_updated_at, last_id FROM etl_state FINAL WHERE pipeline = {p:String}',
+        parameters={'p': PIPELINE_NAME},
+    )
+
+    # Dikembalikan sebagai teks ISO agar aman diteruskan antar block Mage
+    if result.row_count == 0:
+        return {'last_updated_at': EPOCH.isoformat(), 'last_id': 0, 'is_first_run': True}
+
+    last_updated_at, last_id = result.first_row
+    return {
+        'last_updated_at': last_updated_at.isoformat(),
+        'last_id': int(last_id),
+        'is_first_run': False,
+    }

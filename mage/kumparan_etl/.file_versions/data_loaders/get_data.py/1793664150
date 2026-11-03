@@ -1,0 +1,43 @@
+# pengambilan da
+from datetime import datetime, timedelta
+from os import path
+
+from mage_ai.io.config import ConfigFileLoader
+from mage_ai.io.postgres import Postgres
+from mage_ai.settings.repo import get_repo_path
+
+if 'data_loader' not in globals():
+    from mage_ai.data_preparation.decorators import data_loader
+
+OVERLAP_MINUTES = 5          # mundur sedikit agar transaksi yang commit telat tetap terjaring
+MAX_ROWS_PER_RUN = 100_000   # pengaman memori, kalau terlampaui gunakan pipeline backfill
+
+
+@data_loader
+def extract_articles(watermark, *args, **kwargs):
+    start_ts = datetime.fromisoformat(watermark['last_updated_at'])
+    if not watermark['is_first_run']:
+        start_ts -= timedelta(minutes=OVERLAP_MINUTES)
+
+    # Nilai di bawah berasal dari state kita sendiri (timestamp dan angka), bukan input pengguna
+    query = f"""
+        SELECT id, title, content, published_at, author_id,
+               created_at, updated_at, deleted_at
+        FROM public.articles
+        WHERE updated_at >= '{start_ts.isoformat()}'::timestamptz
+        ORDER BY updated_at, id
+        LIMIT {MAX_ROWS_PER_RUN + 1}
+    """
+
+    config_path = path.join(get_repo_path(), 'io_config.yaml')
+    with Postgres.with_config(ConfigFileLoader(config_path, 'default')) as loader:
+        df = loader.load(query)
+
+    if len(df) > MAX_ROWS_PER_RUN:
+        raise ValueError(
+            f'Baris yang berubah melebihi {MAX_ROWS_PER_RUN}. '
+            'Gunakan pipeline backfill per chunk, bukan pipeline incremental.'
+        )
+
+    print(f'Diambil {len(df)} baris sejak {start_ts.isoformat()}')
+    return df

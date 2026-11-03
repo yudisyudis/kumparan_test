@@ -1,0 +1,19 @@
+# mencari watermark data terdelete
+
+from kumparan_etl.utils.warehouse import get_clickhouse_client
+
+if 'data_loader' not in globals():
+    from mage_ai.data_preparation.decorators import data_loader
+
+PIPELINE = 'data_delete_handler'
+
+
+@data_loader
+def get_delete_watermark(*args, **kwargs):
+    client = get_clickhouse_client()
+    result = client.query(
+        'SELECT last_id FROM etl_state FINAL WHERE pipeline = {p:String}',
+        parameters={'p': PIPELINE},
+    )
+    last_event_id = int(result.first_row[0]) if result.row_count else 0
+    return {'last_event_id': last_event_id}

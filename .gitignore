@@ -1,0 +1,3 @@
+.env
+mage/kumparan_etl/.mage_data
+**/__pycache__

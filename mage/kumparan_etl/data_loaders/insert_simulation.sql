@@ -1,0 +1,12 @@
+-- Docs: https://docs.mage.ai/guides/sql-blocks
+
+-- simulasi penambahan data 
+
+INSERT INTO public.articles (title, content, published_at, author_id)
+SELECT
+    'Artikel simulasi ' || to_char(now(), 'YYYY-MM-DD HH24:MI') || ' #' || g,
+    'Isi artikel simulasi. ' || repeat('Lorem ipsum dolor sit amet. ', 10),
+    now(),
+    1 + floor(random() * 100)::bigint
+FROM generate_series(1, 10) AS g;
+

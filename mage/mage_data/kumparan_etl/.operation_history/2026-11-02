@@ -1,0 +1,5 @@
+{"operation": "create", "resource": {"type": "pipeline", "uuid": "generate_data"}, "timestamp": 1793611905, "user": 1}
+{"operation": "create", "resource": {"type": "pipeline", "uuid": "data_generator"}, "timestamp": 1793612019, "user": 1}
+{"operation": "create", "resource": {"type": "pipeline", "uuid": "data_history_insert"}, "timestamp": 1793612823, "user": 1}
+{"operation": "create", "resource": {"type": "pipeline", "uuid": "data_backfill"}, "timestamp": 1793662873, "user": 1}
+{"operation": "create", "resource": {"type": "pipeline", "uuid": "data_streaming"}, "timestamp": 1793663828, "user": 1}

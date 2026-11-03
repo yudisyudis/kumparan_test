@@ -1,0 +1,8 @@
+-- simulasi update data
+
+UPDATE public.articles
+SET content = 'Diedit pada ' || now()::text || '. ' || repeat('Lorem ipsum dolor sit amet. ', 10)
+WHERE id IN (
+    SELECT id FROM public.articles WHERE deleted_at IS NULL ORDER BY random() LIMIT 5
+);
+

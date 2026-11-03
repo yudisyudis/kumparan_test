@@ -1,0 +1,3 @@
+{"operation": "create", "resource": {"type": "pipeline", "uuid": "data_delete_handler"}, "timestamp": 1793665048, "user": 1}
+{"operation": "create", "resource": {"type": "pipeline", "uuid": "data_insert_simulation"}, "timestamp": 1793665779, "user": 1}
+{"operation": "create", "resource": {"type": "pipeline", "uuid": "reset_data"}, "timestamp": 1793674038, "user": 1}
