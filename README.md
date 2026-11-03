@@ -95,6 +95,7 @@ SELECT count() FROM dwh.articles_current;
 -- Perbandingan baris raw data dan hasil cleansing 
 SELECT count() FROM dwh.articles;
 SELECT count() FROM dwh.articles FINAL;
+```
 
 
 ## Desain dan alasan
