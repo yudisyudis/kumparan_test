@@ -1,6 +1,6 @@
-# Pipeline ETL Artikel: PostgreSQL → ClickHouse dengan Mage
+# Pipeline ETL Data Artikel Kumparan: database PostgreSQL → data warehouse ClickHouse dengan Mage untuk orchestration
 
-Pipeline yang memindahkan tabel `articles` dari database operasional (PostgreSQL) ke data warehouse (ClickHouse) **setiap jam**, lengkap dengan penanganan data historis sejak 2016 (bonus 1) dan sinkronisasi hard delete (bonus 2). Seluruh sistem berjalan di Docker Compose.
+Untuk menjawab skill test Data Engineer di Kumparan, dikembangkan serangkaian pipeline yang berfungsi untuk memindahkan tabel `articles` dari database operasional (PostgreSQL) ke data warehouse (ClickHouse) **setiap jam**, dilengkapi dengan penanganan data historis sejak 2016 dan penanganan sinkronisasi data yang mengalami hard delete. Seluruh sistem berjalan di Docker Compose untuk mempermudah penyamaan environment lintas device.
 
 ## Daftar isi
 1. [Arsitektur](#arsitektur)
