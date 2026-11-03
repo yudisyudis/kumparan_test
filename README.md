@@ -5,16 +5,15 @@ Untuk menjawab skill test Data Engineer di Kumparan, dikembangkan serangkaian pi
 ## Daftar isi
 1. [Arsitektur](#arsitektur)
 2. [Cara menjalankan](#cara-menjalankan)
-3. [Pipeline dan jadwal](#pipeline-dan-jadwal)
-4. [Desain dan alasan](#desain-dan-alasan)
-5. [Bonus 1: data historis sejak 2016](#bonus-1-data-historis-sejak-2016)
-6. [Bonus 2: hard delete](#bonus-2-hard-delete)
-7. [Asumsi](#asumsi)
-8. [Pengujian dan demo](#pengujian-dan-demo)
-9. [Keterbatasan dan rencana produksi](#keterbatasan-dan-rencana-produksi)
-10. [Struktur repo](#struktur-repo)
-11. [Pemecahan masalah](#pemecahan-masalah)
-12. [Pengungkapan penggunaan AI](#pengungkapan-penggunaan-ai)
+3. [Desain dan alasan](#desain-dan-alasan)
+4. [Bonus 1: data historis sejak 2016](#bonus-1-data-historis-sejak-2016)
+5. [Bonus 2: hard delete](#bonus-2-hard-delete)
+6. [Asumsi](#asumsi)
+7. [Pengujian dan demo](#pengujian-dan-demo)
+8. [Keterbatasan dan rencana produksi](#keterbatasan-dan-rencana-produksi)
+9. [Struktur repo](#struktur-repo)
+10. [Pemecahan masalah](#pemecahan-masalah)
+11. [Pengungkapan penggunaan AI](#pengungkapan-penggunaan-ai)
 
 ## Arsitektur
 
@@ -43,78 +42,60 @@ cp .env.example .env          # cek kredensial lebih dahulu jika diperlukan
 docker compose up -d --build
 ```
 
-Perintah *docker compose up -d --build* Saat pertama kali menyala:
-- Postgres membuat tabel `articles` dan `articles_hard_deleted` (beserta trigger), **tanpa data**.
-- ClickHouse membuat database `dwh` dengan semua tabel dan view, **tanpa data**.
-- Mage aktif di http://localhost:6789 (project `kumparan_etl`).
+Perintah `docker compose up -d --build` saat pertama kali menyala langsung mengaktifkan:
+- Service Postgres dan membuat tabel `articles` dan `articles_hard_deleted`, **tanpa data**.
+- Service ClickHouse dan membuat database `dwh` dengan semua tabel yang dikonfigurasi sebelumnya, **tanpa data**.
+- Mage aktif dan GUI-nya dapat diakses di http://localhost:6789 (project `kumparan_etl`).
 
-Seluruh struktur tabel dibuat oleh file DDL di `postgres/init/` dan `clickhouse/init/`. Tidak ada tabel yang dibuat manual atau oleh pipeline.
+Seluruh struktur tabel dibuat oleh file DDL di `postgres/init/` dan `clickhouse/init/`.
 
 ### Urutan menjalankan pipeline
 
-Buka Mage, lalu jalankan berurutan (tiap pipeline: *Triggers → New trigger → Once*, atau lewat CLI di bawah):
+Buka Mage, melalui GUI jalankan pipeline dengan urutan sebagai berikut: 
+`data_generator (once)` → `data_backfill (once)` → `data_streaming (hourly)` -> `data_delete_handler (hourly)` → `data_insert_simulation (per 10 menit)` 
 
-| Langkah | Pipeline | Hasil |
-|---|---|---|
-| 1 | `generate_dummy_articles` | 1.000 artikel dummy (2016 sampai sekarang) di Postgres |
-| 2 | `articles_backfill` | Seluruh sejarah termuat ke ClickHouse per bulan, watermark diserahkan ke incremental |
-| 3 | `articles_incremental` | Memindahkan artikel baru/berubah sejak watermark |
-| 4 | `articles_hard_delete` | Menandai artikel yang dihapus fisik |
-| 5 (opsional) | `simulate_app_activity` | Membuat aktivitas aplikasi tiruan agar langkah 3 dan 4 punya bahan |
+selain itu disediakan juga `reset_data` jika ingin mengulang pengisian data dari awal
 
-Menjalankan lewat baris perintah (tanpa UI):
+selain via GUI, pipeline dapat dijalankan lewat CLI sebagai berikut:
 
 ```bash
 # TODO: verifikasi sintaks pada versi Mage yang dipakai, lalu hapus tanda ini
-docker compose exec mage mage run kumparan_etl generate_dummy_articles
-docker compose exec mage mage run kumparan_etl articles_backfill
-docker compose exec mage mage run kumparan_etl articles_incremental
-docker compose exec mage mage run kumparan_etl articles_hard_delete
+docker compose exec mage mage run kumparan_etl data_generator
+docker compose exec mage mage run kumparan_etl data_backfill
+docker compose exec mage mage run kumparan_etl data_streaming
+docker compose exec mage mage run kumparan_etl data_delete_handler
+docker compose exec mage mage run kumparan_etl data_insert_simulation
 ```
+
+| Langkah | Pipeline | Hasil |
+|---|---|---|
+| 1 | `data_generator` | mengenerate artikel dummy dengan jumlah yang dapat disesuaikan dan tersimpan di Postgres |
+| 2 | `data_backfill` | mengambil seluruh data historis ke dalam database Postgres dalam bentuk partisi berdasarkan bulan |
+| 3 | `data_streaming` | Memindahkan artikel baru/berubah per jangka waktu tertentu (per jam) |
+| 4 | `data_delete_handler` | Menandai artikel yang dihapus fisik di database |
+| 5 (opsional) | `data_insert_simulation` | Membuat aktivitas aplikasi tiruan agar dapat terlihat aktivitas update, insert, delete|
+
 
 ### Penjadwalan per jam
 
-Jadwal dibuat di Mage (*Triggers → New trigger → Schedule*). TODO: pindahkan ke `triggers.yaml` per pipeline bila versi Mage mendukung (agar jadwal ikut ter-commit), kalau tidak, ikuti tabel ini.
-
-| Pipeline | Cron | Keterangan |
-|---|---|---|
-| `simulate_app_activity` | `0 * * * *` | Opsional, hanya untuk demo |
-| `articles_incremental` | `15 * * * *` | Setelah simulasi |
-| `articles_hard_delete` | `25 * * * *` | **Setelah** incremental, memperkecil peluang balapan (lihat Keterbatasan) |
+Jadwal dibuat di Mage GUI dan dapat dilihat di file `.yml` di folder tiap-tiap pipeline `mage/kumparan_etl/pipelines`.
 
 ### Memeriksa hasil
 
-| Apa | Cara |
+| Metode | Kredensial |
 |---|---|
 | Postgres (DBeaver) | Host `localhost`, port `POSTGRES_PORT`, database/user/password dari `.env` |
 | ClickHouse (DBeaver) | Driver ClickHouse, host `localhost`, port `8123`, database `dwh` |
 | ClickHouse (browser) | http://localhost:8123/play |
 
 ```sql
--- Data yang dipakai analis (versi terbaru, tanpa baris yang dihapus fisik)
+-- Data bersih yang bisa digunakan analisis (versi terbaru)
 SELECT count() FROM dwh.articles_current;
 
--- Perbandingan baris mentah dan hasil dedup (lihat bagian Desain)
+-- Perbandingan baris raw data dan hasil cleansing 
 SELECT count() FROM dwh.articles;
 SELECT count() FROM dwh.articles FINAL;
 
--- Posisi bookmark tiap pipeline
-SELECT * FROM dwh.etl_state FINAL;
-```
-
-## Pipeline dan jadwal
-
-| Pipeline | Fungsi | Dijalankan |
-|---|---|---|
-| `generate_dummy_articles` | Mengisi sumber dengan data dummy (SQL di `sql/`) | Manual, sekali |
-| `articles_backfill` | Memuat data historis per bulan, dengan checkpoint | Manual, sekali |
-| `articles_incremental` | Menyalin artikel baru/berubah (termasuk soft delete) sejak watermark | Tiap jam |
-| `articles_hard_delete` | Menandai artikel yang dihapus fisik | Tiap jam |
-| `simulate_app_activity` | Insert, edit, soft delete, dan hard delete acak agar sumber data dinamis | Tiap jam (opsional) |
-
-Backfill dan incremental **bukan pilihan alternatif**: keduanya berurutan. Backfill memuat sejarah satu kali dan menyerahkan watermark, lalu incremental mengambil alih selamanya.
-
-`articles_incremental` terdiri dari lima block: `get_watermark → extract_articles → transform_articles → load_articles`, dan `update_watermark` yang bergantung pada `transform_articles` serta `load_articles`.
 
 ## Desain dan alasan
 
