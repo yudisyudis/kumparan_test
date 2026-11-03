@@ -6,14 +6,11 @@ Untuk menjawab skill test Data Engineer di Kumparan, dikembangkan serangkaian pi
 1. [Arsitektur](#arsitektur)
 2. [Cara menjalankan](#cara-menjalankan)
 3. [Desain dan alasan](#desain-dan-alasan)
-4. [Bonus 1: data historis sejak 2016](#bonus-1-data-historis-sejak-2016)
-5. [Bonus 2: hard delete](#bonus-2-hard-delete)
-6. [Asumsi](#asumsi)
+4. [Problem 1: Data Historis](#data-historis)
+5. [Problem 2: Hard Delete](#hard-delete)
+6. [Struktur Repository](#struktur-repository)
 7. [Pengujian dan demo](#pengujian-dan-demo)
-8. [Keterbatasan dan rencana produksi](#keterbatasan-dan-rencana-produksi)
-9. [Struktur repo](#struktur-repo)
-10. [Pemecahan masalah](#pemecahan-masalah)
-11. [Pengungkapan penggunaan AI](#pengungkapan-penggunaan-ai)
+8. [Penggunaan AI](#penggunaan-ai)
 
 ## Arsitektur
 
@@ -32,7 +29,7 @@ flowchart LR
 | Orkestrasi | Mage | mudah dioperasikan via UI |
 
 
-## Cara menjalankan
+## Cara menjalankan Project
 
 Prasyarat: Docker Desktop (Compose v2). Tidak perlu akun cloud.
 
@@ -97,7 +94,6 @@ SELECT count() FROM dwh.articles;
 SELECT count() FROM dwh.articles FINAL;
 ```
 
-
 ## Desain dan Alasan
 
 **Watermark `updated_at`.**
@@ -109,6 +105,7 @@ SELECT count() FROM dwh.articles FINAL;
 semua timestamp diseragamkan ke UTC, `content` kosong diisi string kosong, dan kolom teknis (`_is_hard_deleted`, `_version`) ditambahkan. 
 
 **Data dummy dibuat oleh pipeline Mage, struktur tabel oleh DDL.** Struktur tabel meniru skema aplikasi yang sudah ada, data dummy digenerate sekali sebelum pipeline ETL dijalankan.
+
 
 ## Data Historis
 
@@ -138,7 +135,7 @@ Solusi:
 trigger `AFTER DELETE` di Postgres mencatat id yang dihapus ke `articles_hard_deleted`. Pipeline `articles_hard_delete` membaca catatan baru, mengambil versi terakhir artikel dari warehouse, lalu menulis salinannya sebagai baris baru dengan `_is_hard_deleted = 1` dan `_version` lebih tinggi. Penghapusan fisik tidak dilakukan di ClickHouse. 
 
 
-## Struktur repo
+## Struktur Repository
 
 ```
 .
@@ -151,8 +148,7 @@ trigger `AFTER DELETE` di Postgres mencatat id yang dihapus ke `articles_hard_de
 └── tests/                    
 ```
 
-
-## Pengungkapan penggunaan AI
+## Penggunaan AI
 
 Pengerjaan ini dibantu AI (Claude, Anthropic). Rincian:
 
